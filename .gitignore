@@ -1,0 +1,10 @@
+data/
+*.mp4
+*.csv
+!outputs/submission_2q.csv
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+.env
+venv/
+.DS_Store
