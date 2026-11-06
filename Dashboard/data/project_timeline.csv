@@ -1,0 +1,14 @@
+step,title,category,source,evidence,status
+01,Initial classifier,Model,log.md,Train original MViT on unmatched data; best validation AUC 0.777 (epoch 6).,Completed
+02,Metadata shortcut detected,Audit,log.md,Timing + metadata alone gave non-visual cross-validated AUC 0.700.,Completed
+03,Temporal/spatial ablation,Ablation,log.md,Static F1 0.488; shuffled-time F1 0.667; original F1 0.707.,Completed
+04,Greedy matching,Cleaning,log.md,Incorrect variable matched; start-time leakage persisted.,Failed attempt
+05,Global candidate pool,Cleaning,log.md,2D histogram matching improved distributions; duplicate IDs still leaked across folds.,Partial
+06,Group-aware clean dataset,Cleaning,log.md,Deduplicated 52 IDs; balanced 564/564; nonvisual AUC near chance.,Completed
+07,Clean-data retraining,Training,log.md,"Clean run 1 best validation AUC 0.7674, F1 0.7137 at epoch 4.",Completed
+08,Independent clean test,Evaluation,log.md,"170 clips: macro-F1 0.7294, AUC 0.7846 (run 1).",Completed
+09,Event-centered heads,Model,nexar_collision_model_experiments.md,Linear vs MLP head experiments; event-centered clips include post-event frames.,Completed
+10,Full-video detection,Evaluation,final.ipynb,225 test videos: macro-F1 0.8888 and ROC-AUC 0.9439.,Completed
+11,Alert-aware temporal targets,Data,nexar_model_experiment_log.md,Define pre-alert negative and alert-to-event positive temporal labels.,Completed
+12,Attention pooling (A),Model,nexar_model_experiment_log.md,15 epochs; validation AUC 0.7571; tuned F1 0.7131.,Completed
+13,Transformer + multiscale CNN (B),Model,nexar_model_experiment_log.md,8 of 15 epochs documented; validation AUC 0.7493 and tuned F1 0.7209.,Partial in log

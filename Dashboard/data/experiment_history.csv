@@ -1,0 +1,69 @@
+run,epoch,task,split,source,phase,train_loss,val_loss,train_acc,val_acc,train_f1,val_f1,val_auc
+Clean pre-event MViT · run 1,1,Anticipation,Validation,log.md,clean pre-event run,0.6942,0.6778,0.507,0.6331,0.5018,0.6051,0.6951
+Clean pre-event MViT · run 1,2,Anticipation,Validation,log.md,clean pre-event run,0.6897,0.6691,0.5539,0.6746,0.5523,0.6699,0.744
+Clean pre-event MViT · run 1,3,Anticipation,Validation,log.md,clean pre-event run,0.6637,0.6097,0.6236,0.716,0.6233,0.7157,0.7629
+Clean pre-event MViT · run 1,4,Anticipation,Validation,log.md,clean pre-event run,0.6262,0.5825,0.6869,0.716,0.6869,0.7137,0.7674
+Clean pre-event MViT · run 1,5,Anticipation,Validation,log.md,clean pre-event run,0.5877,0.5924,0.7034,0.6982,0.7032,0.6978,0.7471
+Clean pre-event MViT · run 1,6,Anticipation,Validation,log.md,clean pre-event run,0.5726,0.5927,0.7427,0.6982,0.7427,0.6982,0.7507
+Clean pre-event MViT · run 1,7,Anticipation,Validation,log.md,clean pre-event run,0.5537,0.596,0.7452,0.6864,0.7452,0.686,0.7485
+Original temporal sample,1,Anticipation,Validation,log.md,early temporal baseline,0.6984,0.6857,0.4819,0.6044,0.4819,0.6042,0.6119
+Original temporal sample,2,Anticipation,Validation,log.md,early temporal baseline,0.6888,0.6765,0.5334,0.5778,0.5334,0.5455,0.6723
+Original temporal sample,3,Anticipation,Validation,log.md,early temporal baseline,0.6664,0.6436,0.5964,0.6267,0.5958,0.6029,0.7238
+Original temporal sample,4,Anticipation,Validation,log.md,early temporal baseline,0.6323,0.6097,0.6613,0.6533,0.6603,0.6414,0.7602
+Original temporal sample,5,Anticipation,Validation,log.md,early temporal baseline,0.6129,0.5789,0.6775,0.7067,0.677,0.705,0.7687
+Original temporal sample,6,Anticipation,Validation,log.md,early temporal baseline,0.5889,0.568,0.7071,0.7067,0.7068,0.7067,0.777
+Original temporal sample,7,Anticipation,Validation,log.md,early temporal baseline,0.5696,0.6003,0.7309,0.6756,0.7306,0.6627,0.7928
+Original temporal sample,8,Anticipation,Validation,log.md,early temporal baseline,0.5325,0.5853,0.7519,0.7067,0.7519,0.701,0.7874
+Original temporal sample,9,Anticipation,Validation,log.md,early temporal baseline,0.5163,0.5802,0.7815,0.7111,0.7814,0.7093,0.7867
+Temporal anticipation · Attention pooling (A),1,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.6724,0.7702,,,0.4305,0.2909,0.6049
+Temporal anticipation · Attention pooling (A),2,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.6547,0.6943,,,0.4302,0.4453,0.679
+Temporal anticipation · Attention pooling (A),3,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.6573,0.7361,,,0.4825,0.3358,0.692
+Temporal anticipation · Attention pooling (A),4,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.6602,0.6666,,,0.4821,0.6025,0.7231
+Temporal anticipation · Attention pooling (A),5,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.6409,0.7483,,,0.5032,0.3549,0.718
+Temporal anticipation · Attention pooling (A),6,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.6494,0.6703,,,0.4814,0.508,0.7372
+Temporal anticipation · Attention pooling (A),7,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.6365,0.6743,,,0.5569,0.5539,0.7434
+Temporal anticipation · Attention pooling (A),8,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.609,0.7345,,,0.6228,0.5051,0.7498
+Temporal anticipation · Attention pooling (A),9,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.6201,0.5883,,,0.6412,0.6879,0.7483
+Temporal anticipation · Attention pooling (A),10,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.6163,0.6151,,,0.6483,0.6731,0.7527
+Temporal anticipation · Attention pooling (A),11,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.597,0.6157,,,0.6513,0.6481,0.755
+Temporal anticipation · Attention pooling (A),12,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.5909,0.6015,,,0.664,0.6649,0.7569
+Temporal anticipation · Attention pooling (A),13,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.5639,0.6308,,,0.6681,0.6483,0.7568
+Temporal anticipation · Attention pooling (A),14,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.5722,0.6106,,,0.6742,0.6476,0.7569
+Temporal anticipation · Attention pooling (A),15,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.5655,0.6216,,,0.6873,0.6553,0.7571
+Temporal anticipation · Transformer + CNN (B),1,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.6711,0.7509,0.6169,0.4103,0.413,0.2909,0.6542
+Temporal anticipation · Transformer + CNN (B),2,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.667,0.7224,0.6141,0.4103,0.4747,0.2909,0.6978
+Temporal anticipation · Transformer + CNN (B),3,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.6598,0.6968,0.6398,0.4982,0.5032,0.4629,0.7019
+Temporal anticipation · Transformer + CNN (B),4,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.6525,0.7734,0.6315,0.4872,0.5556,0.4377,0.7257
+Temporal anticipation · Transformer + CNN (B),5,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.634,0.6791,0.6719,0.5934,0.5833,0.5897,0.7183
+Temporal anticipation · Transformer + CNN (B),6,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.635,0.6095,0.6664,0.674,0.6106,0.6417,0.7264
+Temporal anticipation · Transformer + CNN (B),7,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.638,0.7025,0.6645,0.5495,0.5954,0.5325,0.7466
+Temporal anticipation · Transformer + CNN (B),8,Anticipation,Validation,nexar_model_experiment_log.md,alert-aware temporal labels,0.6151,0.6251,0.6984,0.663,0.6353,0.6626,0.7493
+Event-centered detection · Linear head,1,Detection,Validation,nexar_collision_model_experiments.md,event-centered comparison,0.7632,0.6524,0.5146,0.6391,0.5146,0.6153,0.6982
+Event-centered detection · Linear head,2,Detection,Validation,nexar_collision_model_experiments.md,event-centered comparison,0.7048,0.6314,0.5691,0.6568,0.5686,0.6491,0.7265
+Event-centered detection · Linear head,3,Detection,Validation,nexar_collision_model_experiments.md,event-centered comparison,0.6713,0.592,0.6198,0.6982,0.6196,0.6982,0.7584
+Event-centered detection · Linear head,4,Detection,Validation,nexar_collision_model_experiments.md,event-centered comparison,0.6328,0.5835,0.6679,0.6864,0.6678,0.6828,0.7625
+Event-centered detection · Linear head,5,Detection,Validation,nexar_collision_model_experiments.md,event-centered comparison,0.5914,0.5981,0.6958,0.6568,0.6958,0.6567,0.7368
+Event-centered detection · Linear head,6,Detection,Validation,nexar_collision_model_experiments.md,event-centered comparison,0.5819,0.6031,0.7123,0.6627,0.7123,0.6579,0.7457
+Event-centered detection · Linear head,7,Detection,Validation,nexar_collision_model_experiments.md,event-centered comparison,0.555,0.5886,0.7414,0.6982,0.7414,0.6955,0.7605
+Event-centered detection · MLP head,1,Detection,Validation,nexar_collision_model_experiments.md,event-centered comparison,0.6795,0.6466,0.5665,0.6272,0.5659,0.5945,0.7377
+Event-centered detection · MLP head,2,Detection,Validation,nexar_collision_model_experiments.md,event-centered comparison,0.6474,0.7111,0.635,0.5621,0.635,0.4683,0.7513
+Event-centered detection · MLP head,3,Detection,Validation,nexar_collision_model_experiments.md,event-centered comparison,0.6395,0.6153,0.6515,0.6509,0.6511,0.6379,0.7556
+Event-centered detection · MLP head,4,Detection,Validation,nexar_collision_model_experiments.md,event-centered comparison,0.6292,0.5932,0.6819,0.7337,0.6818,0.7307,0.766
+Event-centered detection · MLP head,5,Detection,Validation,nexar_collision_model_experiments.md,event-centered comparison,0.6013,0.5853,0.6882,0.7041,0.6882,0.704,0.7606
+Event-centered detection · MLP head,6,Detection,Validation,nexar_collision_model_experiments.md,event-centered comparison,0.5745,0.5922,0.7326,0.6686,0.7325,0.6681,0.742
+Event-centered detection · MLP head,7,Detection,Validation,nexar_collision_model_experiments.md,event-centered comparison,0.5403,0.6293,0.7529,0.6923,0.7529,0.6785,0.7573
+Full-video detection · MViT temporal head,1,Detection,Validation,final.ipynb · training output,video-wide frames / 15 epochs,0.6968,0.6826,0.4581,0.6222,0.4579,0.5817,0.7019
+Full-video detection · MViT temporal head,2,Detection,Validation,final.ipynb · training output,video-wide frames / 15 epochs,0.6797,0.6197,0.579,0.6756,0.5784,0.6601,0.8245
+Full-video detection · MViT temporal head,3,Detection,Validation,final.ipynb · training output,video-wide frames / 15 epochs,0.6525,0.5655,0.6162,0.7022,0.6161,0.6915,0.8329
+Full-video detection · MViT temporal head,4,Detection,Validation,final.ipynb · training output,video-wide frames / 15 epochs,0.5981,0.5314,0.7114,0.72,0.7114,0.7099,0.8583
+Full-video detection · MViT temporal head,5,Detection,Validation,final.ipynb · training output,video-wide frames / 15 epochs,0.5972,0.5004,0.7133,0.7467,0.7133,0.7392,0.8701
+Full-video detection · MViT temporal head,6,Detection,Validation,final.ipynb · training output,video-wide frames / 15 epochs,0.5828,0.455,0.721,0.7644,0.721,0.7617,0.8857
+Full-video detection · MViT temporal head,7,Detection,Validation,final.ipynb · training output,video-wide frames / 15 epochs,0.538,0.4105,0.7467,0.8089,0.7466,0.8085,0.9066
+Full-video detection · MViT temporal head,8,Detection,Validation,final.ipynb · training output,video-wide frames / 15 epochs,0.4953,0.367,0.8095,0.8356,0.8095,0.8345,0.9299
+Full-video detection · MViT temporal head,9,Detection,Validation,final.ipynb · training output,video-wide frames / 15 epochs,0.4656,0.3381,0.8248,0.88,0.8248,0.8797,0.9416
+Full-video detection · MViT temporal head,10,Detection,Validation,final.ipynb · training output,video-wide frames / 15 epochs,0.4313,0.2862,0.8524,0.9022,0.8524,0.9022,0.9552
+Full-video detection · MViT temporal head,11,Detection,Validation,final.ipynb · training output,video-wide frames / 15 epochs,0.4217,0.2699,0.8581,0.8978,0.8581,0.8977,0.9575
+Full-video detection · MViT temporal head,12,Detection,Validation,final.ipynb · training output,video-wide frames / 15 epochs,0.4075,0.2554,0.8705,0.9067,0.8705,0.9067,0.961
+Full-video detection · MViT temporal head,13,Detection,Validation,final.ipynb · training output,video-wide frames / 15 epochs,0.3966,0.281,0.8629,0.8844,0.8629,0.8842,0.9582
+Full-video detection · MViT temporal head,14,Detection,Validation,final.ipynb · training output,video-wide frames / 15 epochs,0.3702,0.2562,0.8895,0.9022,0.8895,0.9022,0.9602
+Full-video detection · MViT temporal head,15,Detection,Validation,final.ipynb · training output,video-wide frames / 15 epochs,0.3791,0.2559,0.881,0.9067,0.8809,0.9067,0.9612

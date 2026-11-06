@@ -1,0 +1,576 @@
+{
+  "tracks": [
+    {
+      "id": "clean",
+      "title": "01 · Leakage → Clean pre-event",
+      "source": "log.md",
+      "description": "Original MViT, shortcut discovery, unsuccessful matching, grouped cleanup, clean retraining and independent test.",
+      "scope": "Early 4 s pre-event sampling; non-visual baselines and clean video model."
+    },
+    {
+      "id": "event",
+      "title": "02 · Event-centered detection",
+      "source": "nexar_collision_model_experiments.md",
+      "description": "Linear versus MLP classifier heads, checkpoint-loaded test discrepancy, and threshold caveats.",
+      "scope": "4-second clips roughly centered on event; post-event frames may be available."
+    },
+    {
+      "id": "alert",
+      "title": "03 · Alert-aware anticipation",
+      "source": "nexar_model_experiment_log.md",
+      "description": "Time-dependent labels, attention-pooling baseline A and Transformer+CNN model B.",
+      "scope": "Pre-alert versus alert-to-event labels; 273 validation clips, no independent test documented."
+    },
+    {
+      "id": "full",
+      "title": "04 · Full-video detection",
+      "source": "final.ipynb",
+      "description": "Final notebook-based detection run with independently reported 225-video test metrics.",
+      "scope": "16 evenly spaced frames across the full video; post-collision evidence may be included."
+    }
+  ],
+  "steps": [
+    {
+      "id": "initial",
+      "track": "clean",
+      "title": "Original MViT",
+      "status": "Recorded",
+      "source": "log.md",
+      "section": 1,
+      "short": "Val AUC .777 / F1 .707",
+      "change": "Train first MViT on unmatched clip placements",
+      "settings": {
+        "Backbone": "Kinetics-pretrained MViT-v2-S",
+        "Clip": "4 s, 16 frames at 224×224; 1 s warning margin",
+        "Data": "Original unmatched",
+        "Logged training": "9 epochs; best validation-loss checkpoint at epoch 6"
+      },
+      "result": "By epoch 9 train F1 increased but validation performance varied.",
+      "metrics": [
+        {
+          "label": "Best val Macro-F1",
+          "value": "0.7067",
+          "scope": "Epoch 6"
+        },
+        {
+          "label": "Val ROC-AUC at selected checkpoint",
+          "value": "0.7770",
+          "scope": "Epoch 6"
+        },
+        {
+          "label": "Val ROC-AUC at epoch 7",
+          "value": "0.7928",
+          "scope": "Different epoch, not selected"
+        }
+      ],
+      "interpretation": "The run establishes the first visual baseline, but the sampling protocol has untested shortcuts.",
+      "caveat": "Epoch 7 has higher AUC; epoch 6 was chosen by loss/F1, not maximum AUC.",
+      "run": "Original temporal sample"
+    },
+    {
+      "id": "shortcut",
+      "track": "clean",
+      "title": "Metadata shortcut audit",
+      "status": "Recorded",
+      "source": "log.md",
+      "section": 2,
+      "short": "Non-visual AUC .700",
+      "change": "Test whether timing metadata predicts labels without pixels",
+      "settings": {
+        "Inputs": "start_time, time_after_clip, duration and metadata",
+        "Evaluation": "5-fold CV of non-visual classifiers",
+        "Dataset": "Original unmatched"
+      },
+      "result": "Timing and metadata alone discriminated collision labels above chance.",
+      "metrics": [
+        {
+          "label": "Timing + metadata AUC",
+          "value": "0.700 ± 0.012",
+          "scope": "5-fold non-visual CV"
+        },
+        {
+          "label": "start_time-only AUC",
+          "value": "0.653 ± 0.011",
+          "scope": "5-fold non-visual CV"
+        }
+      ],
+      "interpretation": "An AUC of 0.700 without images is evidence of a sampling shortcut, not a valid learned video cue.",
+      "caveat": "Different estimators and validation protocols should not be equated.",
+      "run": null
+    },
+    {
+      "id": "ablation",
+      "track": "clean",
+      "title": "Visual / temporal ablations",
+      "status": "Recorded",
+      "source": "log.md",
+      "section": 3,
+      "short": "Static F1 .488",
+      "change": "Destroy or isolate temporal/spatial inputs in original checkpoint",
+      "settings": {
+        "Model": "Original checkpoint",
+        "Changes": "Static frame, shuffled time, borders-only, center-only",
+        "Metric": "Validation Macro-F1"
+      },
+      "result": "Static frames hurt strongly; shuffled time remained relatively strong.",
+      "metrics": [
+        {
+          "label": "Normal",
+          "value": "0.707",
+          "scope": "Validation Macro-F1"
+        },
+        {
+          "label": "Static frame",
+          "value": "0.488",
+          "scope": "Validation Macro-F1"
+        },
+        {
+          "label": "Shuffled time",
+          "value": "0.667",
+          "scope": "Validation Macro-F1"
+        },
+        {
+          "label": "Center-only",
+          "value": "0.706",
+          "scope": "Validation Macro-F1"
+        }
+      ],
+      "interpretation": "This is evidence of dependence on changing frames, but weaker evidence for precise temporal order.",
+      "caveat": "This ablation is on original data/checkpoint, not the final clean run.",
+      "run": null
+    },
+    {
+      "id": "greedy",
+      "track": "clean",
+      "title": "Greedy matching (failed)",
+      "status": "Failed attempt",
+      "source": "log.md",
+      "section": 4,
+      "short": "KS start p≈2e-9",
+      "change": "Match negatives on time_after_clip one video at a time",
+      "settings": {
+        "Strategy": "Greedy per-video pseudo-event placement",
+        "Target variable": "time_after_clip (already weak shortcut)",
+        "Accepted clips": "1,482"
+      },
+      "result": "Start-time balance got worse; later classifier re-check exposed a new duration/tail problem.",
+      "metrics": [
+        {
+          "label": "start_time KS p",
+          "value": "2.1e-09",
+          "scope": "Matched dataset"
+        },
+        {
+          "label": "start_time KS statistic",
+          "value": "0.166",
+          "scope": "Matched dataset"
+        },
+        {
+          "label": "time_after_clip classifier AUC",
+          "value": "0.674",
+          "scope": "Subsequent proper classifier re-check"
+        }
+      ],
+      "interpretation": "Rejected because the approach matched the wrong variable and distorted the joint distribution.",
+      "caveat": "Heuristic AUC 0.536 is not interchangeable with later properly fitted CV AUC.",
+      "run": null
+    },
+    {
+      "id": "pool",
+      "track": "clean",
+      "title": "Global candidate pool",
+      "status": "Partial",
+      "source": "log.md",
+      "section": 5,
+      "short": "1,364 clips; duplicates",
+      "change": "Pool 30 negative placements/video and stratify by 2D time bins",
+      "settings": {
+        "Candidates": "30 start/after positions per negative video",
+        "Matching": "Global 2D histogram strata",
+        "Raw set": "616 negative + 748 positive = 1,364 rows"
+      },
+      "result": "KS checks improved, but 52 repeated video IDs could cross folds.",
+      "metrics": [
+        {
+          "label": "start_time KS p",
+          "value": "0.806",
+          "scope": "Raw matched dataset"
+        },
+        {
+          "label": "duration KS p",
+          "value": "0.914",
+          "scope": "Raw matched dataset"
+        },
+        {
+          "label": "Duplicated IDs",
+          "value": "52",
+          "scope": "Rows removed in next step"
+        }
+      ],
+      "interpretation": "Matching succeeded on checked distributions but final cross-validation needed grouping/deduplication.",
+      "caveat": "Raw KFold AUC 0.695–0.745 was contaminated by duplicate-source leakage.",
+      "run": null
+    },
+    {
+      "id": "grouped",
+      "track": "clean",
+      "title": "Deduplicate + grouped validation",
+      "status": "Recorded",
+      "source": "log.md",
+      "section": 6,
+      "short": "Non-visual AUC .486",
+      "change": "Remove duplicate video IDs, balance classes, use source-video grouping",
+      "settings": {
+        "Rows": "1,364 → 1,312 after 52 duplicates",
+        "Balanced subset": "564 negative + 564 positive = 1,128",
+        "Validation": "StratifiedGroupKFold(groups=video_id)"
+      },
+      "result": "Tested metadata-only classifiers now perform near chance.",
+      "metrics": [
+        {
+          "label": "Timing + duration ROC-AUC",
+          "value": "0.486 ± 0.020",
+          "scope": "Clean grouped CV"
+        },
+        {
+          "label": "start_time ROC-AUC",
+          "value": "0.493 ± 0.012",
+          "scope": "Clean grouped CV"
+        },
+        {
+          "label": "Final clips",
+          "value": "1,128",
+          "scope": "564 per class"
+        }
+      ],
+      "interpretation": "Specific checked timing shortcuts no longer provide useful separation.",
+      "caveat": "Does not prove the absence of every form of data leakage.",
+      "run": null
+    },
+    {
+      "id": "retrain",
+      "track": "clean",
+      "title": "Clean-data retraining",
+      "status": "Recorded",
+      "source": "log.md",
+      "section": 7,
+      "short": "Val AUC .767 / F1 .714",
+      "change": "Retrain MViT with deduplicated, balanced, grouped dataset",
+      "settings": {
+        "Model": "MViT-v2-S, 16 pre-event frames",
+        "Dataset": "Clean balanced (1,128 clips)",
+        "Selection": "Best val loss epoch 4; early stopping epoch 7"
+      },
+      "result": "Validation F1 increased slightly against the old selected checkpoint despite removal of shortcuts.",
+      "metrics": [
+        {
+          "label": "Selected val F1",
+          "value": "0.7137",
+          "scope": "Epoch 4"
+        },
+        {
+          "label": "Selected val ROC-AUC",
+          "value": "0.7674",
+          "scope": "Epoch 4"
+        },
+        {
+          "label": "Difference vs original val F1",
+          "value": "+0.0070",
+          "scope": "Selected checkpoints"
+        }
+      ],
+      "interpretation": "The cleaner data supported similar visual performance; this is a more credible validation run.",
+      "caveat": "Original and clean splits need care in comparisons.",
+      "run": "Clean pre-event MViT · run 1"
+    },
+    {
+      "id": "clean_test",
+      "track": "clean",
+      "title": "Independent pre-event test",
+      "status": "Recorded",
+      "source": "log.md",
+      "section": 8,
+      "short": "Test AUC .785 / F1 .729",
+      "change": "Evaluate selected clean model on video-grouped holdout",
+      "settings": {
+        "Test": "170 clips (85 positive + 85 negative)",
+        "Checkpoint": "Clean run 1 selected by validation",
+        "Intervals": "95% bootstrap intervals reported"
+      },
+      "result": "Reports held-out performance with an uncertainty interval.",
+      "metrics": [
+        {
+          "label": "Test Macro-F1",
+          "value": "0.7294",
+          "scope": "95% CI [0.6570, 0.7996]"
+        },
+        {
+          "label": "Test ROC-AUC",
+          "value": "0.7846",
+          "scope": "95% CI [0.7058, 0.8530]"
+        },
+        {
+          "label": "Accuracy",
+          "value": "0.7294",
+          "scope": "Independent test"
+        }
+      ],
+      "interpretation": "This is the confirmed clean pre-event test result from log.md.",
+      "caveat": "Do not conflate it with the later alert-aware A/B validation experiments.",
+      "run": null
+    },
+    {
+      "id": "linear",
+      "track": "event",
+      "title": "MViT + linear head",
+      "status": "Recorded",
+      "source": "nexar_collision_model_experiments.md",
+      "section": 6,
+      "short": "Val F1 .683 / AUC .763",
+      "change": "Use a single linear classifier on pretrained MViT-v2-S",
+      "settings": {
+        "Input": "4-second event-centered clip (includes post-event video)",
+        "Model head": "One Linear layer",
+        "Training": "7 epochs logged; backbone frozen epochs 1–2, unfrozen at 3"
+      },
+      "result": "Validation checkpoint at epoch 4.",
+      "metrics": [
+        {
+          "label": "Val Macro-F1",
+          "value": "0.6828",
+          "scope": "Epoch 4"
+        },
+        {
+          "label": "Val ROC-AUC",
+          "value": "0.7625",
+          "scope": "Epoch 4"
+        }
+      ],
+      "interpretation": "Reference architecture for the MLP comparison.",
+      "caveat": "Validation only; no independent test recorded for this specific baseline.",
+      "run": "Event-centered detection · Linear head"
+    },
+    {
+      "id": "mlp",
+      "track": "event",
+      "title": "MViT + MLP head",
+      "status": "Recorded",
+      "source": "nexar_collision_model_experiments.md",
+      "section": 5,
+      "short": "Val F1 .731 / AUC .766",
+      "change": "Replace linear classifier with two-hidden-layer MLP",
+      "settings": {
+        "Input": "Event-centered clip, 16 × 224×224",
+        "Classifier": "LayerNorm → 512 → GELU → Dropout .3 → 256 → GELU → Dropout .2 → 2",
+        "Training": "7 logged epochs; batch 4; AdamW; backbone LR 1e-5, head LR 1e-4, WD .05",
+        "Unfreezing": "After epoch 3"
+      },
+      "result": "MLP validation F1 higher than linear head; best AUC at epoch 4.",
+      "metrics": [
+        {
+          "label": "Val Macro-F1",
+          "value": "0.7307",
+          "scope": "Epoch 4"
+        },
+        {
+          "label": "Val ROC-AUC",
+          "value": "0.7660",
+          "scope": "Epoch 4"
+        },
+        {
+          "label": "Val F1 gain vs linear",
+          "value": "+0.0479",
+          "scope": "Different training runs"
+        }
+      ],
+      "interpretation": "Architecture change is promising, but experimental controls need verification.",
+      "caveat": "Best validation checkpoint selection should be verified against training code.",
+      "run": "Event-centered detection · MLP head"
+    },
+    {
+      "id": "checkpoint",
+      "track": "event",
+      "title": "Checkpoint test / threshold audit",
+      "status": "Recorded",
+      "source": "nexar_collision_model_experiments.md",
+      "section": 8,
+      "short": "Test AUC .786 / F1 .706",
+      "change": "Load checkpoint explicitly and re-evaluate test instead of using the in-memory weights",
+      "settings": {
+        "Evaluation": "170 test clips (85+85)",
+        "Checkpoint": "best_mvit_collision.pth explicitly loaded",
+        "Threshold": "0.50 for reported checkpoint test"
+      },
+      "result": "Explicit checkpoint test differs from earlier reported evaluation.",
+      "metrics": [
+        {
+          "label": "Checkpoint-loaded test F1",
+          "value": "0.7064",
+          "scope": "Threshold 0.50"
+        },
+        {
+          "label": "Checkpoint-loaded test AUC",
+          "value": "0.7855",
+          "scope": "170 clips"
+        },
+        {
+          "label": "Earlier unverified test F1",
+          "value": "0.7319",
+          "scope": "Prior evaluation; cannot merge"
+        }
+      ],
+      "interpretation": "Shows why checkpoint identity and evaluation protocol are part of reproducibility.",
+      "caveat": "Test threshold sweep at .40 yielded F1 .7351, but it is exploratory test-set tuning, not an independently selected operating point.",
+      "run": null
+    },
+    {
+      "id": "labels",
+      "track": "alert",
+      "title": "Alert-aware temporal labels",
+      "status": "Recorded",
+      "source": "nexar_model_experiment_log.md",
+      "section": 1,
+      "short": "1,364 temporal clips",
+      "change": "Define per-window class before-alert vs alert-to-collision",
+      "settings": {
+        "Targets": "Before alert=0; alert→event=1; after event excluded",
+        "Clip": "4 seconds, 16 frames, 224×224; positive placements event−5s→event−1s",
+        "Dataset": "1,364 temporal samples; 804 negative-target, 560 positive-target",
+        "Split": "Grouped by video_id; 1,091 train / 273 validation"
+      },
+      "result": "Class balance and evaluation protocol differ from clean pre-event run 1.",
+      "metrics": [
+        {
+          "label": "Train clips",
+          "value": "1,091",
+          "scope": "1,050 source videos"
+        },
+        {
+          "label": "Validation clips",
+          "value": "273",
+          "scope": "262 source videos"
+        },
+        {
+          "label": "Positive alert-to-event clips",
+          "value": "560",
+          "scope": "Temporal manifest"
+        }
+      ],
+      "interpretation": "Defines the different early-warning target for Models A/B.",
+      "caveat": "The training uses weighted sampling; raw training F1 is not directly comparable with unweighted validation F1.",
+      "run": null
+    },
+    {
+      "id": "A",
+      "track": "alert",
+      "title": "Attention-pooling model A",
+      "status": "Recorded",
+      "source": "nexar_model_experiment_log.md",
+      "section": 4,
+      "short": "Val AUC .757 / tuned F1 .713",
+      "change": "Use MViT features with per-frame spatial pooling and attention over time",
+      "settings": {
+        "Architecture": "MViT-v2-S; attention-pool + mean + max + CLS → MLP",
+        "Schedule": "15/15 epochs; unfreeze epoch 5",
+        "Optimizer groups": "Lower backbone 1e-6; top 4 5e-6; head 2e-5; weight decay .01",
+        "Evaluation": "273 validation clips; tuned threshold ~0.64"
+      },
+      "result": "AUC 0.7571 at epoch 15; F1 depends strongly on threshold.",
+      "metrics": [
+        {
+          "label": "Val ROC-AUC",
+          "value": "0.7571",
+          "scope": "Epoch 15"
+        },
+        {
+          "label": "Val Macro-F1 @ 0.50",
+          "value": "0.6553",
+          "scope": "273 validation clips"
+        },
+        {
+          "label": "Val Macro-F1 (tuned)",
+          "value": "0.7131",
+          "scope": "Validation-selected threshold ~0.64"
+        }
+      ],
+      "interpretation": "Completed temporal baseline A; threshold-tuned validation is an in-sample selection metric.",
+      "caveat": "No independent test in this alert-aware series. Saved filename overlaps with B.",
+      "run": "Temporal anticipation · Attention pooling (A)"
+    },
+    {
+      "id": "B",
+      "track": "alert",
+      "title": "Temporal Transformer + CNN B",
+      "status": "Partial",
+      "source": "nexar_model_experiment_log.md",
+      "section": 5,
+      "short": "8/15 ep · Val AUC .749",
+      "change": "Replace temporal attention-pooling head with Transformer plus multi-scale Conv1D",
+      "settings": {
+        "Architecture": "2 Transformer encoder layers, 8 heads; CNN kernel sizes 3/5/7",
+        "Clip": "16 pre-event frames at 224×224",
+        "Training": "8/15 epochs documented; unfreeze epoch 5",
+        "Optimizer": "Planned head LR 2e-5 vs printed first epoch head LR 5e-6; discrepancy unresolved",
+        "Threshold": "0.65 chosen on validation"
+      },
+      "result": "Epoch 8 scores; not a completed run nor an independent test.",
+      "metrics": [
+        {
+          "label": "Val ROC-AUC",
+          "value": "0.7493",
+          "scope": "Epoch 8"
+        },
+        {
+          "label": "Val Macro-F1 @ 0.50",
+          "value": "0.6626",
+          "scope": "Epoch 8"
+        },
+        {
+          "label": "Val Macro-F1 (tuned)",
+          "value": "0.7209",
+          "scope": "Threshold 0.65, validation"
+        }
+      ],
+      "interpretation": "B looks competitive but cannot be declared the final winner from this partial log.",
+      "caveat": "No independent test; checkpoint filename shared with A. LR discrepancy must be checked.",
+      "run": "Temporal anticipation · Transformer + CNN (B)"
+    },
+    {
+      "id": "full_video",
+      "track": "full",
+      "title": "Full-video final detection",
+      "status": "Recorded",
+      "source": "final.ipynb",
+      "section": null,
+      "short": "Test AUC .944 / F1 .889",
+      "change": "Sample frames across complete video (before and potentially after collision)",
+      "settings": {
+        "Input": "16 evenly spaced frames across video",
+        "Architecture": "MViT-v2-S with temporal Transformer + multi-scale CNN head",
+        "Training": "15 epochs recorded in final.ipynb",
+        "Test": "225 videos; independent video classification"
+      },
+      "result": "Best published test classification metrics for full-video detection.",
+      "metrics": [
+        {
+          "label": "Test ROC-AUC",
+          "value": "0.9439",
+          "scope": "225 videos"
+        },
+        {
+          "label": "Test Macro-F1",
+          "value": "0.8888",
+          "scope": "225 videos"
+        },
+        {
+          "label": "Test confusion matrix",
+          "value": "TN 97 / FP 16 / FN 9 / TP 103",
+          "scope": "225 videos"
+        }
+      ],
+      "interpretation": "Detection performance when observing the video, not validated lead-time anticipation.",
+      "caveat": "Cannot compare directly with 170-clip pre-event test or 273-clip alert-aware validation.",
+      "run": "Full-video detection · MViT temporal head"
+    }
+  ]
+}

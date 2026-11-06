@@ -1,0 +1,17 @@
+run,epoch,train_loss,val_loss,train_f1,val_f1,val_auc,train_acc,val_acc
+Original temporal sample,1,0.6984,0.6857,0.4819,0.6042,0.6119,0.4819,0.6044
+Original temporal sample,2,0.6888,0.6765,0.5334,0.5455,0.6723,0.5334,0.5778
+Original temporal sample,3,0.6664,0.6436,0.5958,0.6029,0.7238,0.5964,0.6267
+Original temporal sample,4,0.6323,0.6097,0.6603,0.6414,0.7602,0.6613,0.6533
+Original temporal sample,5,0.6129,0.5789,0.6770,0.7050,0.7687,0.6775,0.7067
+Original temporal sample,6,0.5889,0.5680,0.7068,0.7067,0.7770,0.7071,0.7067
+Original temporal sample,7,0.5696,0.6003,0.7306,0.6627,0.7928,0.7309,0.6756
+Original temporal sample,8,0.5325,0.5853,0.7519,0.7010,0.7874,0.7519,0.7067
+Original temporal sample,9,0.5163,0.5802,0.7814,0.7093,0.7867,0.7815,0.7111
+Clean pre-event MViT · run 1,1,0.6942,0.6778,0.5018,0.6051,0.6951,0.5070,0.6331
+Clean pre-event MViT · run 1,2,0.6897,0.6691,0.5523,0.6699,0.7440,0.5539,0.6746
+Clean pre-event MViT · run 1,3,0.6637,0.6097,0.6233,0.7157,0.7629,0.6236,0.7160
+Clean pre-event MViT · run 1,4,0.6262,0.5825,0.6869,0.7137,0.7674,0.6869,0.7160
+Clean pre-event MViT · run 1,5,0.5877,0.5924,0.7032,0.6978,0.7471,0.7034,0.6982
+Clean pre-event MViT · run 1,6,0.5726,0.5927,0.7427,0.6982,0.7507,0.7427,0.6982
+Clean pre-event MViT · run 1,7,0.5537,0.5960,0.7452,0.6860,0.7485,0.7452,0.6864

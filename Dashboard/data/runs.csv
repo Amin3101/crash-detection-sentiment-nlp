@@ -1,0 +1,6 @@
+run_id,name,task,protocol,split,samples,macro_f1,roc_auc,accuracy,ci_f1_low,ci_f1_high,ci_auc_low,ci_auc_high,threshold,source,notes
+full_video_jpg,Full-video JPG frames,Detection,16 frames sampled across entire video,Test,225,0.8888,0.9439,0.8889,,,,,0.50,final.ipynb cell 10,Includes footage after the event; no early-warning claim
+clean_1,Clean pre-event MViT · run 1,Anticipation,4-second clip ending 1 second before event; grouped and balanced,Test,170,0.7294,0.7846,0.7294,0.6570,0.7996,0.7058,0.8530,0.50,log.md §8,Group-aware clean split; best validation epoch 4
+clean_2,Clean pre-event MViT · run 2,Anticipation,4-second clip ending 1 second before event; grouped and balanced,Test,170,0.682,0.759,,,,,,0.50,log.md final run summary,Reported second run; seed not documented
+clean_3,Clean pre-event MViT · run 3,Anticipation,4-second clip ending 1 second before event; grouped and balanced,Test,170,0.710,0.772,,,,,,0.50,log.md final run summary,Seed 44; changed head/scheduler/checkpoint selection
+mlp_event_centered,Event-centered MViT + MLP,Detection,4-second clip around event; checkpoint explicitly loaded,Test,170,0.7064,0.7855,0.7118,,,,,0.50,nexar_collision_model_experiments.md §8,Separate pipeline and evaluation from clean runs

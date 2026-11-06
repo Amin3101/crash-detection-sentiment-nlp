@@ -1,0 +1,7 @@
+feature,original_auc,clean_auc,clean_std
+start_time,0.653,0.493,0.012
+video_duration,0.516,0.486,0.026
+time_after_clip,0.476,0.483,0.013
+timing only,0.640,0.486,0.020
+timing + metadata,0.700,,
+timing + duration,,0.486,0.020

@@ -1,0 +1,5 @@
+stage,auc,status,source,details
+Original data,0.700,Shortcut detected,log.md §2,Timing and metadata alone predict labels
+Greedy matching,0.745,Failed,log.md §10,Matched wrong feature and distorted tails
+Global pool before group-aware cleanup,0.695,Leaky validation,log.md §10,Duplicate video IDs across CV folds
+Deduplicated and grouped clean data,0.486,Validated,log.md §6,1128 rows and StratifiedGroupKFold
