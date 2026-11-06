@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Amazon reviews · sentiment analysis dashboard</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1f2937;--muted:#6b7280;--line:#e5e7eb;--accent:#2563eb;--pos:#16a34a;--neg:#dc2626;--neu:#2563eb;--warn:#d97706}
+@media (prefers-color-scheme:dark){:root{--bg:#0f172a;--card:#1e293b;--ink:#e5e7eb;--muted:#94a3b8;--line:#334155;--accent:#60a5fa;--pos:#4ade80;--neg:#f87171;--neu:#60a5fa;--warn:#fbbf24}}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{padding:18px 22px 8px}h1{margin:0;font-size:21px}header p{margin:4px 0 0;color:var(--muted);max-width:900px}
+nav{display:flex;flex-wrap:wrap;gap:6px;padding:10px 22px;position:sticky;top:0;background:var(--bg);z-index:5;border-bottom:1px solid var(--line)}
+nav button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:6px 12px;border-radius:999px;cursor:pointer;font:inherit}
+nav button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+main{padding:16px 22px 40px;max-width:1150px;margin:0 auto}
+.tab{display:none}.tab.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:16px}
+.card h2{margin:0 0 4px;font-size:17px}.card .sub{color:var(--muted);margin:0 0 12px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}.kpi b{display:block;font-size:22px}.kpi span{color:var(--muted);font-size:13px}
+.ctl{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:0 0 12px;color:var(--muted)}
+.ctl select,.ctl input[type=text]{font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+.ctl input[type=range]{vertical-align:middle}
+.story{border-left:3px solid var(--accent);padding:4px 12px;color:var(--ink);margin:12px 0 0;background:transparent}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media (max-width:820px){.grid2{grid-template-columns:1fr}}
+table{border-collapse:collapse;width:100%;font-size:13.5px}th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:var(--muted);font-weight:600}td.n,th.n{text-align:right;white-space:nowrap}
+.scroll{overflow-x:auto}svg{max-width:100%;height:auto;display:block}svg text{fill:var(--ink);font-size:11px}svg .m{fill:var(--muted)}
+.tag{display:inline-block;padding:1px 7px;border-radius:999px;font-size:12px;border:1px solid var(--line);color:var(--muted)}
+.note{color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+<h1>Amazon electronics reviews · sentiment analysis</h1>
+<p>Quera AI bootcamp, project 2, problem 2. Interactive summary of the analysis (part 1), the warranty study (part 2) and the final model (part 3). All charts are drawn from the data embedded in this file; it needs no server and no internet.</p>
+</header>
+<nav id="nav"></nav>
+<main>
+<section class="tab" id="tab-overview"></section>
+<section class="tab" id="tab-ratings"></section>
+<section class="tab" id="tab-words"></section>
+<section class="tab" id="tab-reviewers"></section>
+<section class="tab" id="tab-length"></section>
+<section class="tab" id="tab-brands"></section>
+<section class="tab" id="tab-warranty"></section>
+<section class="tab" id="tab-model"></section>
+</main>
+<script>
+const D = /*DATA*/;
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const num = (x, d = 0) => Number(x).toLocaleString('en-US', {minimumFractionDigits: d, maximumFractionDigits: d});
+const pct = (x, d = 1) => num(x * 100, d) + '%';
+
+/* ---------- tiny SVG chart helpers (return strings) ---------- */
+function vbars(labels, values, o = {}) {
+  const W = o.w || 560, H = o.h || 240, m = {l: 44, r: 10, t: 14, b: 34};
+  const max = o.max || Math.max(...values, 1e-9) * 1.12, bw = (W - m.l - m.r) / values.length;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  for (let i = 0; i <= 4; i++) {
+    const v = max * i / 4, y = H - m.b - (H - m.t - m.b) * i / 4;
+    s += `<line x1="${m.l}" x2="${W - m.r}" y1="${y}" y2="${y}" stroke="var(--line)"/><text class="m" x="${m.l - 6}" y="${y + 4}" text-anchor="end">${(o.fmt || (x => num(x, max < 10 ? 1 : 0)))(v)}</text>`;
+  }
+  values.forEach((v, i) => {
+    const h = (H - m.t - m.b) * v / max, x = m.l + i * bw + bw * 0.12, y = H - m.b - h;
+    const col = Array.isArray(o.colors) ? o.colors[i] : (o.color || 'var(--accent)');
+    s += `<rect x="${x}" y="${y}" width="${bw * 0.76}" height="${Math.max(h, 0)}" rx="3" fill="${col}"><title>${esc(labels[i])}: ${(o.tipfmt || o.fmt || (x => num(x, 2)))(v)}</title></rect>`;
+    if (o.showval) s += `<text x="${x + bw * 0.38}" y="${y - 3}" text-anchor="middle">${(o.fmt || (x => num(x, 1)))(v)}</text>`;
+    s += `<text class="m" x="${x + bw * 0.38}" y="${H - m.b + 15}" text-anchor="middle">${esc(labels[i])}</text>`;
+  });
+  return s + '</svg>';
+}
+function hbars(labels, values, o = {}) {
+  const row = 22, W = o.w || 560, lw = o.lw || 110, H = labels.length * row + 10, max = o.max || Math.max(...values, 1e-9) * 1.1;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  labels.forEach((l, i) => {
+    const w = (W - lw - 60) * values[i] / max, y = i * row + 4, col = Array.isArray(o.colors) ? o.colors[i] : (o.color || 'var(--accent)');
+    s += `<text x="${lw - 6}" y="${y + 13}" text-anchor="end">${esc(l)}</text><rect x="${lw}" y="${y + 2}" width="${Math.max(w, 0)}" height="15" rx="3" fill="${col}"><title>${esc(l)}: ${(o.fmt || (x => num(x, 2)))(values[i])}</title></rect><text class="m" x="${lw + w + 5}" y="${y + 14}">${(o.fmt || (x => num(x, 2)))(values[i])}</text>`;
+  });
+  return s + '</svg>';
+}
+function lines(xs, series, o = {}) {
+  const W = o.w || 560, H = o.h || 240, m = {l: 44, r: 14, t: 14, b: 30};
+  const all = series.flatMap(s => s.values), lo = o.min ?? Math.min(...all), hi = o.max ?? Math.max(...all), span = (hi - lo) || 1;
+  const X = i => m.l + (W - m.l - m.r) * (xs.length === 1 ? 0.5 : i / (xs.length - 1)), Y = v => H - m.b - (H - m.t - m.b) * (v - lo) / span;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  for (let i = 0; i <= 4; i++) {
+    const v = lo + span * i / 4, y = Y(v);
+    s += `<line x1="${m.l}" x2="${W - m.r}" y1="${y}" y2="${y}" stroke="var(--line)"/><text class="m" x="${m.l - 6}" y="${y + 4}" text-anchor="end">${(o.fmt || (x => num(x, 1)))(v)}</text>`;
+  }
+  xs.forEach((x, i) => { s += `<text class="m" x="${X(i)}" y="${H - 8}" text-anchor="middle">${esc(x)}</text>`; });
+  series.forEach(se => {
+    s += `<polyline fill="none" stroke="${se.color}" stroke-width="2.4" points="${se.values.map((v, i) => X(i) + ',' + Y(v)).join(' ')}"/>`;
+    se.values.forEach((v, i) => { s += `<circle cx="${X(i)}" cy="${Y(v)}" r="3.6" fill="${se.color}"><title>${esc(se.name)} ${esc(xs[i])}: ${(o.fmt || (x => num(x, 2)))(v)}</title></circle>`; });
+  });
+  const lg = series.map(se => `<span style="color:${se.color}">&#9632;</span> ${esc(se.name)}`).join(' &nbsp; ');
+  return s + `</svg><div class="note">${lg}</div>`;
+}
+function heat(matrix, labels) {
+  let s = '<table><tr><th class="n">true \\ pred</th>' + labels.map(l => `<th class="n">${l}</th>`).join('') + '</tr>';
+  matrix.forEach((r, i) => {
+    s += `<tr><th class="n">${labels[i]}</th>` + r.map(v => `<td class="n" style="background:rgba(37,99,235,${(0.08 + 0.85 * v).toFixed(2)});color:${v > 0.5 ? '#fff' : 'inherit'}">${num(v, 2)}</td>`).join('') + '</tr>';
+  });
+  return s + '</table>';
+}
+function table(cols, rows) {
+  return '<div class="scroll"><table><tr>' + cols.map(c => `<th class="${c.n ? 'n' : ''}">${esc(c.h)}</th>`).join('') + '</tr>' +
+    rows.map(r => '<tr>' + cols.map(c => `<td class="${c.n ? 'n' : ''}">${c.f ? c.f(r) : esc(r[c.k])}</td>`).join('') + '</tr>').join('') + '</table></div>';
+}
+const card = (title, sub, body, story) => `<div class="card"><h2>${title}</h2><p class="sub">${sub || ''}</p>${body}${story ? `<p class="story">${story}</p>` : ''}</div>`;
+
+/* ---------- tabs ---------- */
+const TABS = [['overview', 'Overview'], ['ratings', 'Ratings (Q1)'], ['words', 'Words (Q2)'], ['reviewers', 'Reviewers & votes (Q3)'],
+  ['length', 'Text length (Q4)'], ['brands', 'Products & brands (Q5, Q6)'], ['warranty', 'Warranty (part 2)'], ['model', 'Model (part 3)']];
+const PAL = ['#dc2626', '#f59e0b', '#9ca3af', '#60a5fa', '#16a34a'];
+
+function renderOverview() {
+  const m = D.model, best = m.results.find(r => r.model === 'ENSEMBLE');
+  $('tab-overview').innerHTML =
+    `<div class="kpis">
+      <div class="kpi"><b>${num(D.meta.n_reviews)}</b><span>training reviews</span></div>
+      <div class="kpi"><b>${num(D.meta.n_products)}</b><span>products</span></div>
+      <div class="kpi"><b>${pct(D.dist.share[4], 0)}</b><span>of reviews are 5-star</span></div>
+      <div class="kpi"><b>${num(D.warranty.n_reviews)}</b><span>reviews about a warranty</span></div>
+      <div class="kpi"><b>${num(best['micro (test estimate mix)'], 3)}</b><span>ensemble micro F1, simulated test mix</span></div>
+    </div>` +
+    card('What this dashboard shows', 'Each tab answers one question of the project.',
+      `<table><tr><th>Tab</th><th>Question</th><th>One-line answer</th></tr>
+       <tr><td>Ratings</td><td>Is the data balanced? Does it drift? Is the test set like the training set?</td><td>No: 55% are 5-star. Slight drift over 2016-2018. The test set is closer to 20% per rating.</td></tr>
+       <tr><td>Words</td><td>Which words characterise each sentiment?</td><td>Many frequent words are shared by positive and negative reviews.</td></tr>
+       <tr><td>Reviewers</td><td>Who gets the votes?</td><td>A few reviews hold most of the votes.</td></tr>
+       <tr><td>Text length</td><td>How long are reviews, which cap for a model?</td><td>Median ${num(D.length.median)} characters; a 1000-character cap keeps ${pct(D.length.cum_at[1000], 0)} intact.</td></tr>
+       <tr><td>Products & brands</td><td>Which products and brands are liked?</td><td>Popular is not always loved; brand differences are partly noise.</td></tr>
+       <tr><td>Warranty</td><td>How satisfied are buyers who write about the warranty?</td><td>Mean ${num(D.warranty.mean, 2)} stars versus ${num(D.warranty.overall_mean, 2)} for all reviews.</td></tr>
+       <tr><td>Model</td><td>Which model, and how good is it?</td><td>An ensemble of a classical model and a transformer.</td></tr></table>`);
+}
+
+function renderRatings() {
+  $('tab-ratings').innerHTML = card('Distribution of the rating <span class="tag">Q1</span>', 'Choose a view.',
+    `<div class="ctl"><label>View <select id="rt-view"><option value="dist">Distribution</option><option value="year">Over time</option><option value="mix">Training vs estimated test</option></select></label></div><div id="rt-chart"></div>`,
+    'The data is strongly imbalanced, so a model that always answers "5" is already right 55% of the time. The metric is accuracy-like (micro F1), therefore we keep the natural distribution when training and correct the probabilities at prediction time.');
+  const draw = () => {
+    const v = $('rt-view').value;
+    if (v === 'dist') $('rt-chart').innerHTML = vbars(['1', '2', '3', '4', '5'], D.dist.share.map(x => x * 100), {colors: PAL, fmt: x => num(x, 1) + '%', showval: true});
+    if (v === 'year') $('rt-chart').innerHTML = lines(D.year.years, [{name: '5-star share (%)', color: 'var(--pos)', values: D.year.five}, {name: '1-star share (%)', color: 'var(--neg)', values: D.year.one}], {fmt: x => num(x, 1)}) +
+      '<p class="note">Reviews per year: ' + D.year.years.map((y, i) => `${y}: ${num(D.year.n[i])}`).join(' · ') + '</p>';
+    if (v === 'mix') $('rt-chart').innerHTML = lines(['1', '2', '3', '4', '5'], [{name: 'training', color: 'var(--muted)', values: D.model.mix.train.map(x => x * 100)}, {name: 'test estimate (EM)', color: 'var(--warn)', values: D.model.mix.em.map(x => x * 100)}, {name: 'test estimate (BBSE)', color: 'var(--accent)', values: D.model.mix.bbse.map(x => x * 100)}], {min: 0, fmt: x => num(x, 0) + '%'}) +
+      '<p class="note">The test labels are hidden. The mix is estimated from the model outputs (two independent methods agree).</p>';
+  };
+  $('rt-view').addEventListener('change', draw); draw();
+}
+
+function renderWords() {
+  $('tab-words').innerHTML = card('Most frequent words by sentiment <span class="tag">Q2</span>', 'Stop words and generic words removed. Words that are also frequent in the opposite polarity are marked.',
+    `<div class="ctl"><label>Sentiment <select id="wd-sent"><option value="positive">positive (4-5 stars)</option><option value="neutral">neutral (3 stars)</option><option value="negative">negative (1-2 stars)</option></select></label>
+     <label>Words shown <input id="wd-n" type="range" min="10" max="30" value="20"> <span id="wd-nv">20</span></label></div><div id="wd-chart"></div><p class="note" id="wd-shared"></p>`,
+    'Frequent words such as "good", "great", "work" and "quality" appear in both positive and negative reviews: they describe the topic, and the sentiment is in the context ("works great" vs "stopped working"). Counting words alone is therefore a weak signal.');
+  const draw = () => {
+    const s = $('wd-sent').value, n = +$('wd-n').value; $('wd-nv').textContent = n;
+    const w = D.words[s].slice(0, n), other = s === 'positive' ? 'negative' : (s === 'negative' ? 'positive' : null);
+    const otherTop = other ? new Set(D.words[other].slice(0, 30).map(x => x[0])) : new Set();
+    const col = s === 'positive' ? 'var(--pos)' : (s === 'negative' ? 'var(--neg)' : 'var(--neu)');
+    $('wd-chart').innerHTML = hbars(w.map(x => x[0] + (otherTop.has(x[0]) ? ' ●' : '')), w.map(x => x[1]), {colors: w.map(x => otherTop.has(x[0]) ? 'var(--warn)' : col), fmt: x => num(x, 0)});
+    $('wd-shared').textContent = other ? `● (orange) = also among the 30 most frequent ${other} words: ${w.filter(x => otherTop.has(x[0])).length} of the ${n} shown.` : '';
+  };
+  $('wd-sent').addEventListener('change', draw); $('wd-n').addEventListener('input', draw); draw();
+}
+
+function renderReviewers() {
+  const c = D.votes.curve;
+  $('tab-reviewers').innerHTML =
+    card('Top 10 reviewers by total helpful votes <span class="tag">Q3</span>', 'Grouped by reviewer id (names are not unique).',
+      table([{h: '#', k: 'rank', n: 1}, {h: 'Reviewer', k: 'name'}, {h: 'Votes', f: r => num(r.votes), n: 1}, {h: 'Reviews', k: 'n', n: 1}], D.votes.top),
+      'Several reviewers reached the top with only one or two very popular reviews, so total votes measure attention more than a body of work.') +
+    card('How concentrated are the votes?', 'Share of all votes held by the most-voted reviews.',
+      `<div class="ctl"><label>Top share of reviews <input id="vt-x" type="range" min="0" max="${c.length - 1}" value="3"> <b id="vt-l"></b></label></div><div id="vt-chart"></div>`,
+      `Only ${pct(D.votes.share_with_vote, 1)} of the reviews received a vote at all. Because votes are so concentrated and zero for most reviews, we do not use them as a model feature.`);
+  const draw = () => {
+    const i = +$('vt-x').value; $('vt-l').textContent = `top ${c[i][0]}% of reviews hold ${num(c[i][1] * 100, 1)}% of votes`;
+    $('vt-chart').innerHTML = vbars(c.map(x => x[0] + '%'), c.map(x => x[1] * 100), {colors: c.map((x, k) => k === i ? 'var(--warn)' : 'var(--accent)'), fmt: x => num(x, 0) + '%', showval: false, h: 220});
+  };
+  $('vt-x').addEventListener('input', draw); draw();
+}
+
+function renderLength() {
+  $('tab-length').innerHTML = card('Review length <span class="tag">Q4</span>', 'Characters of reviewText. Every review has at least 200 characters; the 99th percentile is ' + num(D.length.p99) + '.',
+    `<div class="ctl"><label>Cap at <input id="ln-cap" type="range" min="0" max="${D.length.edges.length - 1}" value="7"> <b id="ln-l"></b></label></div><div id="ln-chart"></div>`,
+    'Median ' + num(D.length.median) + ' characters, long right tail. For a transformer, 256 tokens (about 1000 characters) keeps most reviews intact and keeps training affordable; a linear model needs no cap.');
+  const draw = () => {
+    const i = +$('ln-cap').value, cap = D.length.edges[i];
+    $('ln-l').textContent = `${num(cap)} characters keep ${num(D.length.cum[i] * 100, 1)}% of the reviews intact`;
+    $('ln-chart').innerHTML = vbars(D.length.edges.map((e, k) => k % 3 === 0 ? e : ''), D.length.share.map(x => x * 100), {colors: D.length.edges.map((e, k) => k <= i ? 'var(--accent)' : 'var(--line)'), fmt: x => num(x, 1) + '%', tipfmt: x => num(x, 2) + '% of reviews', h: 230}) + '<p class="note">Bars show the share of reviews per 100-character bin.</p>';
+  };
+  $('ln-cap').addEventListener('input', draw); draw();
+}
+
+function renderBrands() {
+  $('tab-brands').innerHTML =
+    card('Products with the most 5-star reviews <span class="tag">Q5</span>', 'Popular is not the same as loved: compare the 5-star share with the overall ' + pct(D.dist.share[4], 0) + '.',
+      table([{h: 'Brand', k: 'brand'}, {h: 'Product', k: 'title'}, {h: '5-star reviews', f: r => num(r.five), n: 1}, {h: 'All reviews', f: r => num(r.total), n: 1}, {h: '5-star share', f: r => pct(r.share, 0), n: 1}, {h: 'Mean', f: r => num(r.mean, 2), n: 1}], D.products),
+      'Samsung SSDs are loved by about 85% of their reviewers, whereas the Arlo camera system is #9 by count but only 39% of its reviews are 5-star: popular and polarising.') +
+    card('Brands with the most reviews <span class="tag">Q6</span>', 'Mean rating with a 95% confidence interval.',
+      `<div class="ctl"><label>Brands shown <input id="br-n" type="range" min="5" max="${D.brands.length}" value="10"> <span id="br-nv">10</span></label>
+       <label>Sort by <select id="br-sort"><option value="mean">mean rating</option><option value="n">number of reviews</option></select></label></div><div id="br-chart"></div>`,
+      'With thousands of reviews per brand the intervals are narrow, yet neighbouring brands overlap (for example Anker and AmazonBasics). Brands sell different product types, so a brand mean mixes quality with category difficulty.');
+  const draw = () => {
+    const n = +$('br-n').value; $('br-nv').textContent = n;
+    const key = $('br-sort').value, b = D.brands.slice(0, n).slice().sort((a, c) => c[key] - a[key]);
+    const W = 560, lw = 110, row = 26, H = b.length * row + 28, lo = D.brand_axis[0], hi = D.brand_axis[1];
+    const X = v => lw + (W - lw - 20) * (Math.max(Math.min(v, hi), lo) - lo) / (hi - lo);
+    let s = `<svg viewBox="0 0 ${W} ${H}">`;
+    for (let v = lo; v <= hi + 1e-9; v += 0.1) s += `<line x1="${X(v)}" x2="${X(v)}" y1="0" y2="${H - 18}" stroke="var(--line)"/><text class="m" x="${X(v)}" y="${H - 4}" text-anchor="middle">${num(v, 1)}</text>`;
+    s += `<line x1="${X(D.meta.mean_rating)}" x2="${X(D.meta.mean_rating)}" y1="0" y2="${H - 18}" stroke="var(--neg)" stroke-dasharray="4 3"/>`;
+    b.forEach((r, i) => {
+      const y = i * row + 13;
+      s += `<text x="${lw - 8}" y="${y + 4}" text-anchor="end">${esc(r.brand)}</text><line x1="${X(r.mean - r.ci)}" x2="${X(r.mean + r.ci)}" y1="${y}" y2="${y}" stroke="var(--ink)" stroke-width="2"/><circle cx="${X(r.mean)}" cy="${y}" r="5" fill="var(--accent)"><title>${esc(r.brand)}: ${num(r.mean, 3)} ± ${num(r.ci, 3)} (${num(r.n)} reviews)</title></circle>`;
+    });
+    $('br-chart').innerHTML = s + '</svg><p class="note">Dashed red line = mean of all reviews (' + num(D.meta.mean_rating, 2) + '). Hover a point for the exact values.</p>';
+  };
+  $('br-n').addEventListener('input', draw); $('br-sort').addEventListener('change', draw); draw();
+}
+
+function renderWarranty() {
+  const W = D.warranty;
+  $('tab-warranty').innerHTML = card('Satisfaction about the warranty <span class="tag">part 2</span>', 'Reviews that mention warranty / guarantee (including misspellings found with edit distance and word embeddings), averaged per product.',
+    `<div class="kpis"><div class="kpi"><b>${num(W.n_reviews)}</b><span>reviews mention the warranty (${pct(W.n_reviews / D.meta.n_reviews, 1)})</span></div>
+      <div class="kpi"><b>${num(W.mean, 2)}</b><span>their mean rating (all reviews: ${num(W.overall_mean, 2)})</span></div>
+      <div class="kpi"><b>${num(W.n_products_any)}</b><span>products with at least one such review</span></div></div>
+     <div class="ctl"><label>Minimum warranty reviews per product <input id="wr-min" type="range" min="${W.min_available}" max="30" value="5"> <b id="wr-minv">5</b></label>
+       <label>Search brand or title <input id="wr-q" type="text" placeholder="e.g. netgear"></label>
+       <label>Sort <select id="wr-sort"><option value="low">least satisfied first</option><option value="high">most satisfied first</option><option value="n">most reviews first</option></select></label></div>
+     <div class="grid2"><div id="wr-hist"></div><div id="wr-info" class="note"></div></div><div id="wr-table"></div>`,
+    'People mostly write about a warranty when something broke, so these ratings measure satisfaction at the moment of a problem, not only the warranty. The filter does not understand negation ("no warranty" and "great warranty" both count). Products with few such reviews are noisy, which is why the slider exists.');
+  const draw = () => {
+    const mn = +$('wr-min').value, q = $('wr-q').value.toLowerCase().trim(), sort = $('wr-sort').value; $('wr-minv').textContent = mn;
+    let rows = W.rows.filter(r => r.n >= mn);
+    const bins = Array.from({length: 9}, () => 0); rows.forEach(r => { bins[Math.min(8, Math.floor((r.mean - 1) * 2))]++; });
+    $('wr-hist').innerHTML = vbars(['1-1.5', '1.5-2', '2-2.5', '2.5-3', '3-3.5', '3.5-4', '4-4.5', '4.5-5', '5'], bins, {fmt: x => num(x, 0), colors: bins.map((b, i) => i < 4 ? 'var(--neg)' : (i < 6 ? 'var(--warn)' : 'var(--pos)')), showval: true, h: 210});
+    $('wr-info').innerHTML = `${num(rows.length)} products have at least ${mn} warranty reviews. Mean of their averages: ${rows.length ? num(rows.reduce((a, r) => a + r.mean, 0) / rows.length, 2) : '-'}.<br>Histogram: products by mean warranty rating.`;
+    if (q) rows = rows.filter(r => (r.brand + ' ' + r.title).toLowerCase().includes(q));
+    rows = rows.slice().sort((a, b) => sort === 'low' ? a.mean - b.mean || b.n - a.n : (sort === 'high' ? b.mean - a.mean || b.n - a.n : b.n - a.n));
+    $('wr-table').innerHTML = table([{h: 'Brand', k: 'brand'}, {h: 'Product', k: 'title'}, {h: 'Warranty reviews', f: r => num(r.n), n: 1}, {h: 'Warranty mean', f: r => num(r.mean, 2), n: 1}, {h: 'Product mean', f: r => num(r.pm, 2), n: 1}, {h: 'Difference', f: r => (r.mean - r.pm >= 0 ? '+' : '') + num(r.mean - r.pm, 2), n: 1}], rows.slice(0, 15)) + `<p class="note">${num(Math.min(15, rows.length))} of ${num(rows.length)} matching products shown.</p>`;
+  };
+  $('wr-min').addEventListener('input', draw); $('wr-q').addEventListener('input', draw); $('wr-sort').addEventListener('change', draw); draw();
+}
+
+function renderModel() {
+  const M = D.model;
+  $('tab-model').innerHTML = card('Final model <span class="tag">part 3</span>', 'Ensemble of a classical TF-IDF model (words, word pairs, reviewer and product history) and a fine-tuned transformer; probabilities are calibrated and corrected for the test class mix.',
+    `<div class="ctl"><label>Metric <select id="md-metric"><option value="micro">micro F1 (the project metric)</option><option value="macro">macro F1</option></select></label>
+       <label>Class mix <select id="md-mix"><option value="test estimate mix">estimated test mix</option><option value="uniform mix">uniform (20% each)</option></select></label></div><div id="md-bars"></div>`,
+    'Each model alone reaches about 0.58-0.59 under the test-like mix; the ensemble reaches about 0.61-0.62. The two models make different mistakes, so combining them helps. These are simulated scores on held-out validation data, not the final test score.') +
+    `<div class="grid2">` +
+    card('Where the mistakes are', 'Row-normalised confusion matrix at the training class mix.', `<div class="ctl"><label>Model <select id="md-cm">${M.confusion.map((c, i) => `<option value="${i}">${esc(c.model)}</option>`).join('')}</select></label></div><div id="md-cmv"></div>`, 'Mistakes are mostly between neighbouring ratings; 2, 3 and 4 stars are the hard classes.') +
+    card('Per-class F1', 'At the training class mix.', '<div id="md-f1"></div>', 'Class 2 is the hardest (F1 about 0.33), class 5 the easiest (about 0.88).') + `</div>` +
+    card('How the numbers were obtained', '', `<ul><li>Fixed split: training pool, validation A (fits weights, calibration and the test-mix estimate) and validation B (only judges).</li><li>Test class mix estimated with two methods (BBSE, EM with calibration); they agree on about 20% per rating.</li><li>Ensemble weights (log-linear): ${M.weights.map(w => esc(w[0]) + ' ' + num(w[1], 2)).join(', ')}.</li><li>Expected test score is about 0.6 micro F1, assuming only the class mix differs between training and test.</li></ul>`);
+  const bars = () => {
+    const mt = $('md-metric').value, mx = $('md-mix').value, key = `${mt} (${mx})`;
+    $('md-bars').innerHTML = vbars(M.results.map(r => r.model), M.results.map(r => r[key]), {max: 0.7, fmt: x => num(x, 3), showval: true, colors: ['var(--neu)', 'var(--warn)', 'var(--pos)'], h: 230});
+  };
+  const cm = () => { const c = M.confusion[+$('md-cm').value]; $('md-cmv').innerHTML = heat(c.matrix, ['1', '2', '3', '4', '5']); };
+  $('md-metric').addEventListener('change', bars); $('md-mix').addEventListener('change', bars); $('md-cm').addEventListener('change', cm);
+  bars(); cm();
+  $('md-f1').innerHTML = hbars(['1', '2', '3', '4', '5'].map(k => 'class ' + k), M.f1.ensemble, {max: 1, fmt: x => num(x, 2), lw: 70, w: 400, colors: PAL}) + '<p class="note">Ensemble. Classical: ' + M.f1.classical.map(x => num(x, 2)).join(' / ') + ' · Transformer: ' + M.f1.transformer.map(x => num(x, 2)).join(' / ') + '</p>';
+}
+
+/* ---------- boot ---------- */
+const RENDER = {overview: renderOverview, ratings: renderRatings, words: renderWords, reviewers: renderReviewers, length: renderLength, brands: renderBrands, warranty: renderWarranty, model: renderModel};
+function show(id) {
+  TABS.forEach(([t]) => { $('tab-' + t).classList.toggle('on', t === id); });
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === id));
+  if (!show.done[id]) { RENDER[id](); show.done[id] = true; }
+  if (typeof location !== 'undefined') location.hash = id;
+}
+show.done = {};
+$('nav').innerHTML = TABS.map(([t, l]) => `<button data-tab="${t}">${l}</button>`).join('');
+document.querySelectorAll('#nav button').forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));
+show((location.hash || '').slice(1) in RENDER ? location.hash.slice(1) : 'overview');
+</script>
+</body>
+</html>
