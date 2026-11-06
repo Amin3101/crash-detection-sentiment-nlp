@@ -1,0 +1,25 @@
+loaded 1s | pool 798,944
+target encoding done 5s
+text features 50s
+
+===== text + history (218s) =====
+validation at training mix: micro 0.7187 macro 0.5642
+real test mix  EM-BCTS: 0.204 0.195 0.233 0.174 0.195 | BBSE: 0.195 0.188 0.225 0.189 0.203
+simulate mix=uniform       | mix error L1: BBSE 0.041, EM 0.061
+    uncorrected          micro 0.5496 macro 0.5251
+    BBSE-corrected       micro 0.5861 macro 0.5817
+    EM+BCTS-corrected    micro 0.5849 macro 0.5816
+    oracle mix (cal.)    micro 0.5854 macro 0.5826
+simulate mix=EM estimate   | mix error L1: BBSE 0.030, EM 0.053
+    uncorrected          micro 0.5458 macro 0.5250
+    BBSE-corrected       micro 0.5837 macro 0.5824
+    EM+BCTS-corrected    micro 0.5833 macro 0.5803
+    oracle mix (cal.)    micro 0.5851 macro 0.5831
+simulate mix=BBSE estimate | mix error L1: BBSE 0.060, EM 0.066
+    uncorrected          micro 0.5476 macro 0.5247
+    BBSE-corrected       micro 0.5856 macro 0.5791
+    EM+BCTS-corrected    micro 0.5793 macro 0.5762
+    oracle mix (cal.)    micro 0.5820 macro 0.5794
+final submission mix: 0.215 0.167 0.241 0.158 0.219
+
+done 219s
