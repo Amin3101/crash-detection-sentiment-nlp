@@ -1,0 +1,14 @@
+# Core (parts 1-2 and the classical model)
+numpy>=1.26
+pandas>=2.1
+scipy>=1.11
+scikit-learn>=1.4
+matplotlib>=3.8
+seaborn>=0.13
+wordcloud>=1.9       # word clouds in notebooks/01_eda.ipynb (falls back to bar charts without it)
+jupyter>=1.0
+ipykernel>=6.29
+
+# Transformer (only scripts/transformer_colab.py; needs a GPU in practice, e.g. Google Colab)
+torch>=2.2
+transformers>=4.40
